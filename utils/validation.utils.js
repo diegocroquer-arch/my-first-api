@@ -18,6 +18,10 @@ function isValidPassword(password) {
   return passwordRegex.test(password);
 }
 
+function emailExists(email) {
+  return users.some((user) => user.email === email);
+}
+
 function handleError(err, req, res, next) {
   console.error(err);
   if (err.status && err.type && err.message) {
