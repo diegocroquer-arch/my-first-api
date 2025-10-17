@@ -1,5 +1,3 @@
-const users = [{ id: 1, name: "Pepe", email: "pepe@example.com" }];
-
 function addUser(id, user, email) {
   users.push({ id: id, name: user, email: email });
 }
@@ -32,14 +30,3 @@ function deleteUserById(id) {
     console.log(deletedUser);
   }
 }
-
-// Ejemplos de uso
-// addUser(2, "Juan", "juan@example.com");
-// addUser(3, "Maria", "maria@example.com");
-// emailExists("pepe@example.com");
-// getAllUsers();
-// updateUserById(2, { name: "Juan Updated", email: "juan.updated@example.com" });
-// getAllUsers();
-// findUserById(3);
-// deleteUserById(1);
-// getAllUsers();

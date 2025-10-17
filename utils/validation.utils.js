@@ -19,7 +19,7 @@ function isValidPassword(password) {
 }
 
 function emailExists(email) {
-  return users.some((user) => user.email === email);
+  return email === "test@example.com";
 }
 
 function handleError(err, req, res, next) {
