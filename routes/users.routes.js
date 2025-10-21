@@ -13,7 +13,7 @@ import {
   updateUserById,
   deleteUserById,
   emailExists,
-} from "../data/users.data.js";
+} from "../repository/users.data.js";
 
 const router = express.Router();
 
