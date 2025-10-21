@@ -1,28 +1,36 @@
-const { isValidElement, createElement } = require("react");
+const data = {
+  name: "John Doe ",
+  email: "johndoe@example.com",
+  password: "Password123!",
+  id: 234324,
+};
 
-function validateRequiredFields(data, requiredFields) {
-  const missingFields = requiredFields.filter((field) => !data[field]);
-  if (missingFields.length > 0) {
-    throw new Error(`Faltan campos requeridos: ${missingFields.join(", ")}`);
+const requiredFields = ["name", "email", "password"];
+
+export function validateRequiredFields(data, requiredFields) {
+  for (let i = 0; i < requiredFields.length; i++) {
+    requiredFields = requiredFields[i];
+    let datasafe = data[requiredFields];
+    if (datasafe == "" || datasafe == null) {
+      return false;
+    }
   }
 }
 
-function isValidEmail(email) {
+export function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-function isValidPassword(password) {
+export function isValidPassword(password) {
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   return passwordRegex.test(password);
 }
 
-function emailExists(email) {
-  return email === "test@example.com";
-}
+export function emailExists(email, data) {}
 
-function handleError(err, req, res, next) {
+export function handleError(err, req, res, next) {
   console.error(err);
   if (err.status && err.type && err.message) {
   } else {
