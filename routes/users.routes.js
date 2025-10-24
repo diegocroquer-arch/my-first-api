@@ -1,4 +1,3 @@
-export default router;
 import express from "express";
 import {
   validateRequiredFields,
@@ -16,7 +15,6 @@ import {
 } from "../repository/users.data.js";
 
 const router = express.Router();
-
 router.post("/users", async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -117,3 +115,5 @@ router.put("/users/:id", async (req, res, next) => {
     handleError(error, res, next);
   }
 });
+
+export default router;
