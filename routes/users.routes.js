@@ -19,22 +19,19 @@ const userRouter = express.Router();
 userRouter.post("/", async (req, res) => {
   try {
     const { nombre, correo, contrasena } = req.body;
-    validateRequiredFields(req.body, ["nombre", "correo", "contrasena"]);
-
-    isValidEmail(correo);
-    isValidPassword(contrasena);
+    //    validateRequiredFields(req.body, ["nombre", "correo", "contrasena"]);
 
     // 3️⃣ Verificar si el correo ya existe
-    const correoExiste = await emailExists(correo);
-    if (correoExiste) {
-      return res.status(409).json({
-        success: false,
-        message: "El correo electrónico ya está registrado.",
-      });
-    }
-
+    //const correoExiste = await emailExists(correo);
+    // if (correoExiste) {
+    //   return res.status(409).json({
+    //     success: false,
+    //     message: "El correo electrónico ya está registrado.",
+    //   });
+    // }
+    console.log("aqui");
     // 4️⃣ Crear usuario
-    const newUser = await addUser({ nombre, correo, contrasena });
+    const newUser = await addUser(nombre, correo, contrasena);
 
     res.status(201).json({
       success: true,
@@ -42,6 +39,7 @@ userRouter.post("/", async (req, res) => {
       data: newUser,
     });
   } catch (error) {
+    console.error("Error al crear usuario:", error);
     res
       .status(500)
       .json({ success: false, message: "Error al crear usuario", error });
