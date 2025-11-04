@@ -1,23 +1,20 @@
-// app.js
 import express from "express";
 import cors from "cors";
-import usersRouter from "./routes/users.routes.js";
+import userRoutes from "./routes/users.routes.js";
 
 export function createApp() {
   const app = express();
-
-  app.use(cors());
-  app.use(express.json());
-
+  app.set("view engine", "ejs");
   app.get("/", (req, res) => {
-    res.status(200).json({
-      success: true,
-      message: "API de Usuarios funcionando correctamente 🚀",
-      endpoints: {},
+    res.json({
+      message: "API de usuarios - Ejercicio 2",
+      version: "2.0",
+      architecture: "Routes → Repository + Model",
     });
   });
-
-  app.use(usersRouter);
-
+  app.use(cors());
+  app.use(express.json());
+  app.use("/api/users", userRoutes);
   return app;
 }
+export default createApp;

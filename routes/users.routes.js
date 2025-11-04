@@ -3,7 +3,7 @@ import {
   validateRequiredFields,
   isValidEmail,
   isValidPassword,
-  handleError,
+  emailExists,
 } from "../utils/validation.utils.js";
 import {
   addUser,
@@ -11,109 +11,136 @@ import {
   findUserById,
   updateUserById,
   deleteUserById,
-  emailExists,
 } from "../repository/users.data.js";
 
-const router = express.Router();
-router.post("/users", async (req, res, next) => {
+const userRouter = express.Router();
+
+// Crear usuario
+userRouter.post("/", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { nombre, correo, contrasena } = req.body;
+    validateRequiredFields(req.body, ["nombre", "correo", "contrasena"]);
 
-    // Validar campos requeridos
-    validateRequiredFields({ name, email, password });
+    isValidEmail(correo);
+    isValidPassword(contrasena);
 
-    // Validar formato de email
-    isValidEmail(email);
-
-    // Validar fortaleza de contraseña
-    isValidPassword(password);
-
-    let emailExists = await emailExists(email);
-    if (emailExists) {
+    // 3️⃣ Verificar si el correo ya existe
+    const correoExiste = await emailExists(correo);
+    if (correoExiste) {
       return res.status(409).json({
         success: false,
         message: "El correo electrónico ya está registrado.",
       });
     }
-    const newUser = await addUser({ name, email, password });
-    if (newUser) {
-      return res.status(201).json({
-        id: Date.now(),
-        created: new Date().toISOString(),
-        success: true,
-        message: "Usuario creado exitosamente.",
-        data: newUser,
-      });
-    }
+
+    // 4️⃣ Crear usuario
+    const newUser = await addUser({ nombre, correo, contrasena });
+
+    res.status(201).json({
+      success: true,
+      message: "Usuario creado exitosamente.",
+      data: newUser,
+    });
   } catch (error) {
-    handleError(error, res, next);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al crear usuario", error });
   }
 });
 
-router.get("/users", async (req, res, next) => {
+// Obtener todos los usuarios
+userRouter.get("/", async (req, res) => {
   try {
-    let users = await getAllUsers();
-    let count = users.length + 1;
-    let arrayModificado = users.map((objeto) => {
-      const nuevoObjeto = { ...objeto };
-      delete nuevoObjeto.password;
-      return nuevoObjeto;
-    });
+    const users = await getAllUsers();
+    const arrayModificado = users.map(({ id, nombre, correo }) => ({
+      id,
+      nombre,
+      correo,
+    }));
+
     res.status(200).json({
       success: true,
+      count: users.length,
       data: arrayModificado,
-      count: count,
     });
   } catch (error) {
-    handleError(error, res, next);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al obtener usuarios", error });
   }
 });
 
-router.get("/users/:id", async (req, res, next) => {
+// Obtener usuario por ID
+userRouter.get("/:id", async (req, res) => {
   try {
-    const userId = req.params.id;
-    const user = await findUserById(userId);
+    const user = await findUserById(req.params.id);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Usuario no encontrado.",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Usuario no encontrado." });
     }
-    const { password, ...userWithoutPassword } = user;
+
+    const { contrasena, ...userSinContrasena } = user;
+    res.status(200).json({ success: true, data: userSinContrasena });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Error al buscar usuario", error });
+  }
+});
+
+// Actualizar usuario
+userRouter.put("/:id", async (req, res) => {
+  try {
+    const { nombre, correo, contrasena } = req.body;
+
+    validateRequiredFields(req.body, ["nombre", "correo", "contrasena"]);
+    isValidEmail(correo);
+    isValidPassword(contrasena);
+
+    const updatedUser = await updateUserById(req.params.id, {
+      nombre,
+      correo,
+      contrasena,
+    });
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Usuario no encontrado." });
+    }
+
     res.status(200).json({
       success: true,
-      data: userWithoutPassword,
+      message: "Usuario actualizado exitosamente.",
+      data: updatedUser,
     });
   } catch (error) {
-    handleError(error, res, next);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al actualizar usuario", error });
   }
 });
 
-router.put("/users/:id", async (req, res, next) => {
+// Eliminar usuario
+userRouter.delete("/:id", async (req, res) => {
   try {
-    const userId = req.params.id;
-    const { name, email, password } = req.body;
-
-    validateRequiredFields({ name, email, password });
-    isValidEmail(email);
-    isValidPassword(password);
-
-    const updatedUser = await updateUserById(Id, {
-      name,
-      email,
-      password,
-    });
-    if (updatedUser) {
-      return res.status(200).json({
-        success: true,
-        message: "Usuario actualizado exitosamente.",
-        data: updatedUser,
+    const deletedUser = await deleteUserById(req.params.id);
+    if (deletedUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Usuario no eliminado.",
       });
     }
-    emailExists(email);
+
+    res.status(200).json({
+      success: true,
+      message: "Usuario eliminado exitosamente.",
+    });
   } catch (error) {
-    handleError(error, res, next);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al eliminar usuario", error });
   }
 });
 
-export default router;
+export default userRouter;

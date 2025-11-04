@@ -1,39 +1,38 @@
-const data = {
-  name: "John Doe ",
-  email: "johndoe@example.com",
-  password: "Password123!",
-  id: 234324,
-};
+import { Sequelize } from "sequelize";
+import Joi from "joi";
 
-const requiredFields = ["name", "email", "password"];
+export async function isValidUser(user) {
+  const userSchema = Joi.object({
+    id: Joi.number().integer().min(1).required(),
+    nombre: Joi.string().min(2).max(100).required(),
+    correo: Joi.string().email().required(),
+    contrasena: Joi.string().min(6).required(),
+  });
+  return userSchema.validate(user);
+}
 
-export function validateRequiredFields(data, requiredFields) {
-  for (let i = 0; i < requiredFields.length; i++) {
-    requiredFields = requiredFields[i];
-    let datasafe = data[requiredFields];
-    if (datasafe == "" || datasafe == null) {
-      return false;
-    }
+export async function isValidEmail(email) {
+  const emailSchema = Joi.string().email(); // error 404 bad request no encontrado
+  return emailSchema.validate(email);
+}
+
+export async function isValidPassword(password) {
+  const passwordSchema = Joi.string()
+    .min(6)
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
+    );
+  return passwordSchema.validate(password);
+}
+export function validateRequiredFields(user) {
+  const { name, email, password } = user;
+  if (!name || !email || !password) {
+    throw new Error("Todos los campos son obligatorios.");
   }
+  return passwordSchema.validate(password);
 }
 
-export function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-export function isValidPassword(password) {
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-  return passwordRegex.test(password);
-}
-
-export function emailExists(email, data) {}
-
-export function handleError(err, req, res, next) {
-  console.error(err);
-  if (err.status && err.type && err.message) {
-  } else {
-    return createError(500, "Error Internal Server ", "message");
-  }
+export async function emailExists(data, email) {
+  let emailExist = data.some((usuarios) => usuarios.correo === email);
+  return emailExist;
 }
