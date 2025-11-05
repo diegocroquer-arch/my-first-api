@@ -1,10 +1,10 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import {
   validateRequiredFields,
   isValidEmail,
   isValidPassword,
-  emailExists,
 } from "../utils/validation.utils.js";
 import {
   addUser,
@@ -12,7 +12,11 @@ import {
   findUserById,
   updateUserById,
   deleteUserById,
+  emailExists,
+  findUserByEmail,
 } from "../repository/users.data.js";
+import { Usuario } from "../models/usermodel.js";
+import e from "express";
 
 const userRouter = express.Router();
 
@@ -70,6 +74,7 @@ userRouter.get("/", async (req, res) => {
 });
 
 // Obtener usuario por ID
+// to do: devuelve el usuario y varias caracteristicas extrañas
 userRouter.get("/:id", async (req, res) => {
   try {
     const user = await findUserById(req.params.id);
@@ -88,7 +93,30 @@ userRouter.get("/:id", async (req, res) => {
   }
 });
 
-// Actualizar usuario
+// Obtener usuario por correo
+userRouter.get("/email/:correo", async (req, res) => {
+  try {
+    const { correo } = req.params;
+    const user = await findUserByEmail(correo);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Usuario no encontrado." });
+    }
+
+    const { contrasena, ...userSinContrasena } = user;
+    res.status(200).json({ success: true, data: userSinContrasena });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error al buscar usuario por correo",
+      error: error.message,
+    });
+  }
+});
+
+// to do: Actualizar usuario
 userRouter.put("/:id", async (req, res) => {
   try {
     const { nombre, correo, contrasena } = req.body;
@@ -140,6 +168,35 @@ userRouter.delete("/:id", async (req, res) => {
       .status(500)
       .json({ success: false, message: "Error al eliminar usuario", error });
   }
+});
+
+// Registro de usuario
+userRouter.post("/register", async (req, res) => {
+  const { nombre, correo, contrasena } = req.body;
+  const passwordHash = await bcrypt.hash(contrasena, 10);
+  await addUser(nombre, correo, passwordHash);
+  await res.status(201).json({ message: "Usuario creado" });
+});
+
+//to do: hacer roles de usuario
+userRouter.post("/login", async (req, res) => {
+  const { correo, contrasena } = req.body;
+  const user = await findUserByEmail(correo);
+
+  console.log(user);
+
+  if (!user) return res.status(400).json({ message: "asuhdiaushdlidas" });
+  const passwordOk = await bcrypt.compare(contrasena, user.contrasena);
+
+  console.log("Contraseña almacenada:", user.contrasena);
+  if (!passwordOk)
+    return res.status(400).json({ message: "Credenciales inválidas" });
+
+  const token = jwt.sign({ correo }, "72y3i47hy234i92736y4i34786238", {
+    expiresIn: "1h",
+  });
+
+  res.json({ token });
 });
 
 export default userRouter;

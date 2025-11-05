@@ -11,6 +11,16 @@ export async function addUser(nombre, correo, contrasena) {
   }
 }
 
+export async function registerUser(correo, contrasena) {
+  try {
+    const newUser = await Usuario.create({ correo, contrasena });
+    return newUser;
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    throw error;
+  }
+}
+
 export async function getAllUsers() {
   const usuarios = await Usuario.findAll();
   return usuarios;
@@ -18,10 +28,11 @@ export async function getAllUsers() {
 
 export async function findUserById(id) {
   const user = await Usuario.findByPk(id);
-  return user;
+  return user ? user.get({ plain: true }) : null;
 }
+
 export async function emailExists(email) {
-  const user = await Usuario.findOne({ where: { email: email } });
+  const user = await Usuario.findOne({ where: { correo: email } });
   return user !== null;
 }
 
@@ -35,4 +46,9 @@ export async function updateUserById(id, userData) {
 
 export async function deleteUserById(reqId) {
   await Usuario.destroy({ where: { id: reqId } });
+}
+
+export async function findUserByEmail(correo) {
+  const user = await Usuario.findOne({ where: { correo } });
+  return user ? user.get({ plain: true }) : null;
 }

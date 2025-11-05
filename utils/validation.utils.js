@@ -31,8 +31,3 @@ export function validateRequiredFields(user) {
   }
   return passwordSchema.validate(password);
 }
-
-export async function emailExists(data, email) {
-  let emailExist = data.some((usuarios) => usuarios.correo === email);
-  return emailExist;
-}

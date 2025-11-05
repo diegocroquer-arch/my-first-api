@@ -4,6 +4,10 @@ import userRoutes from "./routes/users.routes.js";
 
 export function createApp() {
   const app = express();
+  app.use((req, res, next) => {
+    console.log("Llega un request");
+    next();
+  });
   app.set("view engine", "ejs");
   app.get("/", (req, res) => {
     res.json({
